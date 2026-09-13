@@ -203,19 +203,23 @@ const todayStr = () => {
 };
 
 async function safeGet(key){
-  try{ const r = await window.storage.get(key, false); return r ? JSON.parse(r.value) : null; }
+  try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }
   catch(e){ return null; }
 }
 async function safeSet(key, value){
-  try{ await window.storage.set(key, JSON.stringify(value), false); return true; }
+  try{ localStorage.setItem(key, JSON.stringify(value)); return true; }
   catch(e){ return false; }
 }
 async function listLogs(){
   try{
-    const r = await window.storage.list('log:', false);
-    if(!r || !r.keys) return [];
     const entries = [];
-    for(const k of r.keys){ const v = await safeGet(k); if(v) entries.push(v); }
+    for(let i=0; i<localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith('log:')){
+        const v = await safeGet(k);
+        if(v) entries.push(v);
+      }
+    }
     entries.sort((a,b)=> a.date.localeCompare(b.date));
     return entries;
   }catch(e){ return []; }
