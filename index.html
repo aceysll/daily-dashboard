@@ -234,6 +234,29 @@ function minutesToLabel(mins){
   return `${hh}:${String(m).padStart(2,'0')} ${period}`;
 }
 
+const FORM_ACTION_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScInG7Ip0pUaKXt4d6PS13a82VacyAu6pI7ujMQYSOr1V4qdQ/formResponse';
+const FORM_FIELDS = {
+  date: 'entry.1407182388',
+  weight: 'entry.591745938',
+  steps: 'entry.2006155217',
+  meal1: 'entry.903070913',
+  meal2: 'entry.974669481',
+  fruit: 'entry.263373733'
+};
+
+function submitToSheet(entry){
+  try{
+    const body = new URLSearchParams();
+    body.append(FORM_FIELDS.date, entry.date || '');
+    body.append(FORM_FIELDS.weight, entry.weight || '');
+    body.append(FORM_FIELDS.steps, entry.steps || '');
+    body.append(FORM_FIELDS.meal1, entry.meal1 ? 'Yes' : 'No');
+    body.append(FORM_FIELDS.meal2, entry.meal2 ? 'Yes' : 'No');
+    body.append(FORM_FIELDS.fruit, entry.fruit ? 'Yes' : 'No');
+    fetch(FORM_ACTION_URL, { method: 'POST', mode: 'no-cors', body });
+  }catch(e){ /* best-effort, local save already succeeded */ }
+}
+
 let schedule = null;
 let stepGoal = 5000;
 
@@ -356,6 +379,7 @@ $('saveLog').addEventListener('click', async ()=>{
   if(steps) entry.steps = steps;
   const ok = await safeSet('log:' + date, entry);
   $('saveMsg').textContent = ok ? 'Saved.' : 'Could not save, try again.';
+  if(ok) submitToSheet(entry);
   await renderStats();
   setTimeout(()=> $('saveMsg').textContent = '', 2500);
 });
