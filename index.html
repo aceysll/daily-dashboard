@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Dashboard</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#3F5D45">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dashboard">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --paper:#EDE6D6;
+    --card:#FBF8F1;
+    --ink:#2B2A25;
+    --ink-soft:#6B6558;
+    --line:#CDC2A6;
+    --green:#3F5D45;
+    --rust:#B5651D;
+    --phase:#3F5D45;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Mono', monospace;
+    display:flex;
+    justify-content:center;
+    padding:20px 14px 60px;
+  }
+  .sheet{width:100%; max-width:480px;}
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:26px;
+    margin:0 0 2px;
+    letter-spacing:-0.01em;
+  }
+  .sub{color:var(--ink-soft); font-size:12px; margin-bottom:16px;}
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:16px 16px 18px;
+    margin-bottom:14px;
+  }
+  .clock-card{ background:var(--phase); color:#fff; border:none; }
+  .clock-time{font-family:'Fraunces', serif; font-size:38px; font-weight:600; line-height:1;}
+  .clock-date{font-size:12px; opacity:0.85; margin-top:2px;}
+  .phase-label{font-size:13px; margin-top:12px; opacity:0.95;}
+  .phase-sub{font-size:12px; opacity:0.75; margin-top:2px;}
+  .section-title{font-family:'Fraunces', serif; font-size:16px; font-weight:600; margin:0 0 12px;}
+  .tear{border-top:1px dashed var(--line); margin:14px 0;}
+  label{display:block; font-size:12px; color:var(--ink-soft); margin-bottom:5px;}
+  input[type=number], input[type=time]{
+    width:100%; font-family:'IBM Plex Mono', monospace; font-size:15px;
+    padding:8px 10px; border:1px solid var(--line); border-radius:2px;
+    background:#fff; color:var(--ink); margin-bottom:12px;
+  }
+  .row{display:flex; gap:10px;}
+  .row > div{flex:1;}
+  .check{
+    display:flex; align-items:center; gap:10px; padding:9px 10px;
+    border:1px solid var(--line); border-radius:2px; background:#fff;
+    cursor:pointer; font-size:14px; user-select:none; margin-bottom:8px;
+  }
+  .check input{width:16px; height:16px; accent-color:var(--green); margin:0;}
+  .check.done{background:#EAF0E9; border-color:var(--green);}
+  button{
+    width:100%; background:var(--green); color:#fff; border:none; padding:11px;
+    font-family:'IBM Plex Mono', monospace; font-size:14px; font-weight:500;
+    border-radius:2px; cursor:pointer; margin-top:4px;
+  }
+  .stat-row{display:flex; justify-content:space-between; margin-bottom:4px;}
+  .stat-label{color:var(--ink-soft); font-size:12px;}
+  .stat-value{font-size:19px; font-weight:600;}
+  .stat-value.rust{color:var(--rust);}
+  .stat-value.green{color:var(--green);}
+  canvas{width:100%; height:130px; display:block; margin-top:6px;}
+  table{width:100%; border-collapse:collapse; font-size:12px;}
+  th,td{text-align:left; padding:6px 4px; border-bottom:1px solid var(--line);}
+  th{color:var(--ink-soft); font-weight:500;}
+  .dot{display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:3px;}
+  .dot.on{background:var(--green);}
+  .dot.off{background:var(--line);}
+  .empty{color:var(--ink-soft); font-size:13px; font-style:italic;}
+  .msg{font-size:12px; color:var(--ink-soft); margin-top:6px; min-height:14px;}
+  .toggle-link{font-size:12px; color:var(--ink-soft); text-decoration:underline; cursor:pointer; display:inline-block; margin-top:2px;}
+  #settingsBody{display:none;}
+  .bar-track{width:100%; height:8px; background:#E4DCC8; border-radius:4px; overflow:hidden; margin-top:6px;}
+  .bar-fill{height:100%; background:var(--rust); border-radius:4px; transition:width .3s;}
+  .steps-note{font-size:11px; color:var(--ink-soft); margin-top:4px;}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <h1>Daily Dashboard</h1>
+  <div class="sub">Live schedule · meals · steps · progress</div>
+
+  <div class="card clock-card">
+    <div class="clock-time" id="clockTime">--:--</div>
+    <div class="clock-date" id="clockDate">—</div>
+    <div class="phase-label" id="phaseLabel">Loading schedule…</div>
+    <div class="phase-sub" id="phaseSub"></div>
+  </div>
+
+  <div class="card" id="setupCard" style="display:none;">
+    <div class="section-title">Set your schedule</div>
+    <label>Wake-up time</label>
+    <input type="time" id="wakeTime" value="05:30">
+    <label>Meal 1 time (bigger meal)</label>
+    <input type="time" id="meal1Time" value="11:30">
+    <label>Meal 2 time</label>
+    <input type="time" id="meal2Time" value="18:00">
+    <label>Usual bedtime</label>
+    <input type="time" id="sleepTime" value="22:00">
+    <label>Starting weight (kg)</label>
+    <input type="number" id="startWeight" value="95" step="0.1">
+    <label>Daily step goal</label>
+    <input type="number" id="stepGoal" value="5000" step="500">
+    <button id="saveSetup">Save & start</button>
+  </div>
+
+  <div id="mainUI" style="display:none;">
+    <div class="card" id="accountabilityCard" style="display:none; background:#F6E9DC; border-color:var(--rust);">
+      <div class="section-title" style="color:var(--rust);" id="accountabilityText">—</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Today's menu</div>
+      <div class="stat-row"><span class="stat-label">Meal 1</span></div>
+      <div id="menuMeal1" style="font-size:14px; margin-bottom:10px;">—</div>
+      <div class="stat-row"><span class="stat-label">Meal 2</span></div>
+      <div id="menuMeal2" style="font-size:14px;">—</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Today's checklist</div>
+      <div class="check" data-key="meal1"><input type="checkbox"> Meal 1 eaten</div>
+      <div class="check" data-key="meal2"><input type="checkbox"> Meal 2 eaten</div>
+      <div class="check" data-key="fruit"><input type="checkbox"> Fruit / evening bridge snack</div>
+      <label style="margin-top:10px;">Weight today (kg) — optional</label>
+      <input type="number" id="logWeight" step="0.1" placeholder="e.g. 94.5">
+      <label>Steps today</label>
+      <input type="number" id="logSteps" step="100" placeholder="e.g. 5200">
+      <div class="bar-track"><div class="bar-fill" id="stepsBar" style="width:0%;"></div></div>
+      <div class="steps-note" id="stepsNote">0 / 5000 steps</div>
+      <button id="saveLog" style="margin-top:12px;">Save today</button>
+      <div class="msg" id="saveMsg"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Where you're at</div>
+      <div class="stat-row"><span class="stat-label">Starting weight</span><span class="stat-value" id="statStart">—</span></div>
+      <div class="stat-row"><span class="stat-label">Latest weight</span><span class="stat-value" id="statLatest">—</span></div>
+      <div class="stat-row"><span class="stat-label">Lost so far</span><span class="stat-value green" id="statLost">—</span></div>
+      <div class="stat-row"><span class="stat-label">Meal-plan streak</span><span class="stat-value rust" id="statStreak">—</span></div>
+      <div class="stat-row"><span class="stat-label">Avg steps (7d)</span><span class="stat-value" id="statAvgSteps">—</span></div>
+      <div class="tear"></div>
+      <canvas id="chart" height="130"></canvas>
+      <div class="empty" id="chartEmpty" style="display:none;">Log a few days to see your trend line here.</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Recent history</div>
+      <table id="historyTable">
+        <thead><tr><th>Date</th><th>Weight</th><th>Steps</th><th>Meals</th></tr></thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+      <div class="empty" id="historyEmpty" style="display:none;">No entries yet.</div>
+    </div>
+
+    <div class="card">
+      <span class="toggle-link" id="toggleSettings">Edit schedule / weight / step goal</span>
+      <div id="settingsBody">
+        <div class="tear"></div>
+        <label>Wake-up time</label>
+        <input type="time" id="wakeTime2">
+        <label>Meal 1 time</label>
+        <input type="time" id="meal1Time2">
+        <label>Meal 2 time</label>
+        <input type="time" id="meal2Time2">
+        <label>Bedtime</label>
+        <input type="time" id="sleepTime2">
+        <label>Daily step goal</label>
+        <input type="number" id="stepGoal2" step="500">
+        <button id="updateSettings">Update</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const todayStr = () => {
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+};
+
+async function safeGet(key){
+  try{ const r = await window.storage.get(key, false); return r ? JSON.parse(r.value) : null; }
+  catch(e){ return null; }
+}
+async function safeSet(key, value){
+  try{ await window.storage.set(key, JSON.stringify(value), false); return true; }
+  catch(e){ return false; }
+}
+async function listLogs(){
+  try{
+    const r = await window.storage.list('log:', false);
+    if(!r || !r.keys) return [];
+    const entries = [];
+    for(const k of r.keys){ const v = await safeGet(k); if(v) entries.push(v); }
+    entries.sort((a,b)=> a.date.localeCompare(b.date));
+    return entries;
+  }catch(e){ return []; }
+}
+
+function timeToMinutes(t){ const [h,m] = t.split(':').map(Number); return h*60+m; }
+function minutesToLabel(mins){
+  mins = ((mins % 1440) + 1440) % 1440;
+  const h = Math.floor(mins/60), m = mins%60;
+  const period = h < 12 ? 'AM' : 'PM';
+  let hh = h % 12; if(hh===0) hh=12;
+  return `${hh}:${String(m).padStart(2,'0')} ${period}`;
+}
+
+let schedule = null;
+let stepGoal = 5000;
+
+// Sunday=0 ... Saturday=6, matches Date.getDay()
+const MENU = [
+  { meal1: "Jollof rice + chicken (5 spoons)", meal2: "Rice & beans, no extra protein (4 spoons)" }, // Sun
+  { meal1: "Jollof rice + 3 beef pieces (5 spoons)", meal2: "Rice & beans + egg (4 spoons)" }, // Mon
+  { meal1: "White rice + fish (5 spoons)", meal2: "Rice & beans + egg (4 spoons)" }, // Tue
+  { meal1: "Fried rice + 3 beef pieces (5 spoons)", meal2: "Rice & beans, no extra protein (4 spoons)" }, // Wed
+  { meal1: "Jollof rice + fish (5 spoons)", meal2: "White rice + egg (4 spoons)" }, // Thu
+  { meal1: "White rice + 3 beef pieces (5 spoons)", meal2: "Rice & beans + egg (4 spoons)" }, // Fri
+  { meal1: "Fried rice + fish (5 spoons)", meal2: "Rice & beans + egg (4 spoons)" } // Sat
+];
+
+function renderMenu(phaseState){
+  const today = MENU[new Date().getDay()];
+  $('menuMeal1').textContent = today.meal1;
+  const meal2El = $('menuMeal2');
+  if(phaseState.meal2Visible){
+    meal2El.textContent = today.meal2;
+  } else {
+    meal2El.textContent = `Locked until after Meal 1 · unlocks around ${minutesToLabel(timeToMinutes(schedule.meal1)+60)}`;
+  }
+}
+
+function updatePhase(){
+  const now = new Date();
+  const nowMin = now.getHours()*60 + now.getMinutes();
+  $('clockTime').textContent = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  $('clockDate').textContent = now.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'});
+  if(!schedule) return;
+
+  const wake = timeToMinutes(schedule.wake);
+  const m1 = timeToMinutes(schedule.meal1);
+  const m2 = timeToMinutes(schedule.meal2);
+  const sleep = timeToMinutes(schedule.sleep);
+  const root = document.documentElement;
+
+  function within(start,end){
+    if(start<=end) return nowMin>=start && nowMin<end;
+    return nowMin>=start || nowMin<end;
+  }
+
+  let label, sub, color;
+  const meal1Passed = !within(wake, m1) && !within(m1, m1+60);
+  const meal2Visible = meal1Passed;
+
+  if(within(m1, m1+60)){
+    label = "Meal 1 window — eat now"; sub = `${MENU[now.getDay()].meal1}`; color = '#B5651D';
+  } else if(within(m2, m2+60)){
+    label = "Meal 2 window — eat now"; sub = `${MENU[now.getDay()].meal2}`; color = '#B5651D';
+  } else if(within(wake, m1)){
+    const mins = m1 - nowMin; label = "Before Meal 1"; sub = `Meal 1 at ${minutesToLabel(m1)} · ${Math.floor(mins/60)}h ${mins%60}m to go`; color = '#3F5D45';
+  } else if(within(m1+60, m2)){
+    const mins = m2 - nowMin; label = "Between meals"; sub = `Meal 2 in ${Math.floor(mins/60)}h ${mins%60}m`; color = '#3F5D45';
+  } else if(within(m2+60, sleep)){
+    const mins = (((sleep - nowMin)%1440)+1440)%1440; label = "Wind down"; sub = `Bedtime in ${Math.floor(mins/60)}h ${mins%60}m — good window for a short walk`; color = '#4A4636';
+  } else {
+    label = "Asleep"; sub = "Rest up"; color = '#2B2A25';
+  }
+  $('phaseLabel').textContent = label;
+  $('phaseSub').textContent = sub;
+  root.style.setProperty('--phase', color);
+
+  if(document.getElementById('menuMeal1')) renderMenu({meal2Visible});
+
+  // Accountability nudge: meal window passed by an hour and still unchecked
+  const meal1Box = document.querySelector('.check[data-key="meal1"] input');
+  const meal2Box = document.querySelector('.check[data-key="meal2"] input');
+  const accCard = $('accountabilityCard');
+  if(meal1Box && meal2Box){
+    let nudge = null;
+    if(nowMin > m1+60 && nowMin < m2 && !meal1Box.checked){
+      nudge = "Meal 1 window passed, did you eat? Mark it on the checklist below.";
+    } else if((within(m2+60, sleep) || within(sleep, wake)) && !meal2Box.checked){
+      nudge = "Meal 2 window passed, did you eat? Mark it on the checklist below.";
+    }
+    if(nudge){ accCard.style.display = 'block'; $('accountabilityText').textContent = nudge; }
+    else { accCard.style.display = 'none'; }
+  }
+}
+
+document.querySelectorAll('.check').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    setTimeout(()=> c.classList.toggle('done', c.querySelector('input').checked), 0);
+  });
+});
+
+$('logSteps').addEventListener('input', updateStepsBar);
+function updateStepsBar(){
+  const val = parseInt($('logSteps').value) || 0;
+  const pct = Math.min(100, (val/stepGoal)*100);
+  $('stepsBar').style.width = pct + '%';
+  $('stepsNote').textContent = `${val} / ${stepGoal} steps`;
+}
+
+$('saveSetup').addEventListener('click', async ()=>{
+  schedule = {
+    wake: $('wakeTime').value, meal1: $('meal1Time').value,
+    meal2: $('meal2Time').value, sleep: $('sleepTime').value
+  };
+  const sw = parseFloat($('startWeight').value) || 95;
+  stepGoal = parseInt($('stepGoal').value) || 5000;
+  await safeSet('schedule', schedule);
+  await safeSet('settings', {startWeight: sw, startDate: todayStr(), stepGoal});
+  $('setupCard').style.display = 'none';
+  $('mainUI').style.display = 'block';
+  updateStepsBar();
+  await loadToday();
+  await renderStats();
+});
+
+$('saveLog').addEventListener('click', async ()=>{
+  const date = todayStr();
+  const entry = {date};
+  document.querySelectorAll('.check').forEach(c=> entry[c.dataset.key] = c.querySelector('input').checked);
+  const weight = parseFloat($('logWeight').value);
+  if(weight) entry.weight = weight;
+  const steps = parseInt($('logSteps').value);
+  if(steps) entry.steps = steps;
+  const ok = await safeSet('log:' + date, entry);
+  $('saveMsg').textContent = ok ? 'Saved.' : 'Could not save, try again.';
+  await renderStats();
+  setTimeout(()=> $('saveMsg').textContent = '', 2500);
+});
+
+$('toggleSettings').addEventListener('click', ()=>{
+  const body = $('settingsBody');
+  const opening = body.style.display !== 'block';
+  body.style.display = opening ? 'block' : 'none';
+  if(opening && schedule){
+    $('wakeTime2').value = schedule.wake;
+    $('meal1Time2').value = schedule.meal1;
+    $('meal2Time2').value = schedule.meal2;
+    $('sleepTime2').value = schedule.sleep;
+    $('stepGoal2').value = stepGoal;
+  }
+});
+
+$('updateSettings').addEventListener('click', async ()=>{
+  schedule = {
+    wake: $('wakeTime2').value, meal1: $('meal1Time2').value,
+    meal2: $('meal2Time2').value, sleep: $('sleepTime2').value
+  };
+  stepGoal = parseInt($('stepGoal2').value) || stepGoal;
+  await safeSet('schedule', schedule);
+  const settings = await safeGet('settings') || {};
+  settings.stepGoal = stepGoal;
+  await safeSet('settings', settings);
+  $('settingsBody').style.display = 'none';
+  updateStepsBar();
+});
+
+async function loadToday(){
+  const existing = await safeGet('log:' + todayStr());
+  if(existing){
+    document.querySelectorAll('.check').forEach(c=>{
+      const cb = c.querySelector('input');
+      cb.checked = !!existing[c.dataset.key];
+      c.classList.toggle('done', cb.checked);
+    });
+    if(existing.weight) $('logWeight').value = existing.weight;
+    if(existing.steps) $('logSteps').value = existing.steps;
+  }
+  updateStepsBar();
+}
+
+async function renderStats(){
+  const settings = await safeGet('settings');
+  if(!settings) return;
+  const logs = await listLogs();
+  const withWeight = logs.filter(l=>l.weight);
+  $('statStart').textContent = settings.startWeight + ' kg';
+
+  if(withWeight.length){
+    const latest = withWeight[withWeight.length-1];
+    $('statLatest').textContent = latest.weight + ' kg';
+    const lost = (settings.startWeight - latest.weight).toFixed(1);
+    $('statLost').textContent = (lost >= 0 ? lost + ' kg' : Math.abs(lost)+' kg (gained)');
+  }
+
+  let streak = 0, d = new Date();
+  const adherentDates = new Set(logs.filter(l=>l.meal1 && l.meal2).map(l=>l.date));
+  while(true){
+    const ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    if(adherentDates.has(ds)){ streak++; d.setDate(d.getDate()-1); } else break;
+  }
+  $('statStreak').textContent = streak + (streak===1 ? ' day' : ' days');
+
+  const last7 = logs.slice(-7).filter(l=>l.steps);
+  if(last7.length){
+    const avg = Math.round(last7.reduce((a,l)=>a+l.steps,0)/last7.length);
+    $('statAvgSteps').textContent = avg.toLocaleString();
+  } else {
+    $('statAvgSteps').textContent = '—';
+  }
+
+  drawChart(withWeight);
+  renderHistory(logs);
+}
+
+function drawChart(points){
+  const canvas = $('chart'), empty = $('chartEmpty');
+  if(points.length < 2){ canvas.style.display='none'; empty.style.display='block'; return; }
+  canvas.style.display='block'; empty.style.display='none';
+  const ctx = canvas.getContext('2d');
+  const w = canvas.clientWidth || 440, h = 130;
+  canvas.width = w; canvas.height = h;
+  ctx.clearRect(0,0,w,h);
+  const weights = points.map(p=>p.weight);
+  const min = Math.min(...weights)-0.5, max = Math.max(...weights)+0.5;
+  const pad = 8, xStep = (w-pad*2)/(points.length-1);
+  ctx.strokeStyle = '#3F5D45'; ctx.lineWidth = 2; ctx.beginPath();
+  points.forEach((p,i)=>{
+    const x = pad+i*xStep, y = h-pad-((p.weight-min)/(max-min))*(h-pad*2);
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  ctx.fillStyle = '#B5651D';
+  points.forEach((p,i)=>{
+    const x = pad+i*xStep, y = h-pad-((p.weight-min)/(max-min))*(h-pad*2);
+    ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
+  });
+}
+
+function renderHistory(logs){
+  const body = $('historyBody'), empty = $('historyEmpty');
+  body.innerHTML = '';
+  if(!logs.length){ empty.style.display='block'; return; }
+  empty.style.display='none';
+  logs.slice().reverse().slice(0,10).forEach(l=>{
+    const tr = document.createElement('tr');
+    const meals = ['meal1','meal2','fruit'].map(k=>`<span class="dot ${l[k]?'on':'off'}"></span>`).join('');
+    tr.innerHTML = `<td>${l.date}</td><td>${l.weight? l.weight+' kg':'—'}</td><td>${l.steps? l.steps.toLocaleString():'—'}</td><td>${meals}</td>`;
+    body.appendChild(tr);
+  });
+}
+
+async function init(){
+  schedule = await safeGet('schedule');
+  const settings = await safeGet('settings');
+  if(!schedule || !settings){
+    $('setupCard').style.display = 'block';
+  } else {
+    stepGoal = settings.stepGoal || 5000;
+    $('mainUI').style.display = 'block';
+    updateStepsBar();
+    await loadToday();
+    await renderStats();
+  }
+  updatePhase();
+  setInterval(updatePhase, 15000);
+}
+init();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

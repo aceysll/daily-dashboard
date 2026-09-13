@@ -1,0 +1,24 @@
+{
+  "name": "Daily Dashboard",
+  "short_name": "Dashboard",
+  "description": "Live meal schedule, checklist, steps and weight progress tracker",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#EDE6D6",
+  "theme_color": "#3F5D45",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
