@@ -14,42 +14,21 @@
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
   :root{
-    --paper:#EDE6D6;
-    --card:#FBF8F1;
-    --ink:#2B2A25;
-    --ink-soft:#6B6558;
-    --line:#CDC2A6;
-    --green:#3F5D45;
-    --rust:#B5651D;
-    --phase:#3F5D45;
+    --paper:#EDE6D6; --card:#FBF8F1; --ink:#2B2A25; --ink-soft:#6B6558;
+    --line:#CDC2A6; --green:#3F5D45; --rust:#B5651D; --phase:#3F5D45;
+    --blue:#3D5A73;
   }
   *{box-sizing:border-box;}
   body{
-    margin:0;
-    background:var(--paper);
-    color:var(--ink);
+    margin:0; background:var(--paper); color:var(--ink);
     font-family:'IBM Plex Mono', monospace;
-    display:flex;
-    justify-content:center;
-    padding:20px 14px 60px;
+    display:flex; justify-content:center; padding:20px 14px 60px;
   }
   .sheet{width:100%; max-width:480px;}
-  h1{
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:26px;
-    margin:0 0 2px;
-    letter-spacing:-0.01em;
-  }
+  h1{font-family:'Fraunces', serif; font-weight:600; font-size:26px; margin:0 0 2px; letter-spacing:-0.01em;}
   .sub{color:var(--ink-soft); font-size:12px; margin-bottom:16px;}
-  .card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:2px;
-    padding:16px 16px 18px;
-    margin-bottom:14px;
-  }
-  .clock-card{ background:var(--phase); color:#fff; border:none; }
+  .card{background:var(--card); border:1px solid var(--line); border-radius:2px; padding:16px 16px 18px; margin-bottom:14px;}
+  .clock-card{background:var(--phase); color:#fff; border:none;}
   .clock-time{font-family:'Fraunces', serif; font-size:38px; font-weight:600; line-height:1;}
   .clock-date{font-size:12px; opacity:0.85; margin-top:2px;}
   .phase-label{font-size:13px; margin-top:12px; opacity:0.95;}
@@ -57,7 +36,7 @@
   .section-title{font-family:'Fraunces', serif; font-size:16px; font-weight:600; margin:0 0 12px;}
   .tear{border-top:1px dashed var(--line); margin:14px 0;}
   label{display:block; font-size:12px; color:var(--ink-soft); margin-bottom:5px;}
-  input[type=number], input[type=time]{
+  input[type=number], input[type=time], input[type=text]{
     width:100%; font-family:'IBM Plex Mono', monospace; font-size:15px;
     padding:8px 10px; border:1px solid var(--line); border-radius:2px;
     background:#fff; color:var(--ink); margin-bottom:12px;
@@ -65,42 +44,57 @@
   .row{display:flex; gap:10px;}
   .row > div{flex:1;}
   .check{
-    display:flex; align-items:center; gap:10px; padding:9px 10px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 10px;
     border:1px solid var(--line); border-radius:2px; background:#fff;
     cursor:pointer; font-size:14px; user-select:none; margin-bottom:8px;
   }
+  .check-left{display:flex; align-items:center; gap:10px;}
   .check input{width:16px; height:16px; accent-color:var(--green); margin:0;}
   .check.done{background:#EAF0E9; border-color:var(--green);}
+  .check-time{font-size:11px; color:var(--ink-soft);}
   button{
     width:100%; background:var(--green); color:#fff; border:none; padding:11px;
     font-family:'IBM Plex Mono', monospace; font-size:14px; font-weight:500;
     border-radius:2px; cursor:pointer; margin-top:4px;
   }
+  button.outline{background:transparent; color:var(--green); border:1px solid var(--green);}
   .stat-row{display:flex; justify-content:space-between; margin-bottom:4px;}
   .stat-label{color:var(--ink-soft); font-size:12px;}
   .stat-value{font-size:19px; font-weight:600;}
   .stat-value.rust{color:var(--rust);}
   .stat-value.green{color:var(--green);}
+  .stat-value.blue{color:var(--blue);}
   canvas{width:100%; height:130px; display:block; margin-top:6px;}
-  table{width:100%; border-collapse:collapse; font-size:12px;}
+  table{width:100%; border-collapse:collapse; font-size:11px;}
   th,td{text-align:left; padding:6px 4px; border-bottom:1px solid var(--line);}
   th{color:var(--ink-soft); font-weight:500;}
   .dot{display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:3px;}
-  .dot.on{background:var(--green);}
-  .dot.off{background:var(--line);}
+  .dot.on{background:var(--green);} .dot.off{background:var(--line);}
   .empty{color:var(--ink-soft); font-size:13px; font-style:italic;}
   .msg{font-size:12px; color:var(--ink-soft); margin-top:6px; min-height:14px;}
   .toggle-link{font-size:12px; color:var(--ink-soft); text-decoration:underline; cursor:pointer; display:inline-block; margin-top:2px;}
-  #settingsBody{display:none;}
+  #settingsBody, #historyMore{display:none;}
   .bar-track{width:100%; height:8px; background:#E4DCC8; border-radius:4px; overflow:hidden; margin-top:6px;}
   .bar-fill{height:100%; background:var(--rust); border-radius:4px; transition:width .3s;}
+  .bar-fill.blue{background:var(--blue);}
   .steps-note{font-size:11px; color:var(--ink-soft); margin-top:4px;}
+  .water-row{display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap;}
+  .glass{
+    width:34px; height:34px; border:1px solid var(--line); border-radius:4px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    background:#fff; font-size:15px;
+  }
+  .glass.filled{background:var(--blue); color:#fff; border-color:var(--blue);}
+  .feedback-box{
+    background:#F0EDE1; border-left:3px solid var(--green); padding:10px 12px;
+    font-size:13px; margin-top:10px; border-radius:2px;
+  }
 </style>
 </head>
 <body>
 <div class="sheet">
   <h1>Daily Dashboard</h1>
-  <div class="sub">Live schedule · meals · steps · progress</div>
+  <div class="sub">Live schedule · meals · water · steps · workouts</div>
 
   <div class="card clock-card">
     <div class="clock-time" id="clockTime">--:--</div>
@@ -121,6 +115,8 @@
     <input type="time" id="sleepTime" value="22:00">
     <label>Starting weight (kg)</label>
     <input type="number" id="startWeight" value="95" step="0.1">
+    <label>Goal weight (kg) — optional</label>
+    <input type="number" id="goalWeight" step="0.1" placeholder="e.g. 85">
     <label>Daily step goal</label>
     <input type="number" id="stepGoal" value="5000" step="500">
     <button id="saveSetup">Save & start</button>
@@ -136,22 +132,56 @@
       <div class="stat-row"><span class="stat-label">Meal 1</span></div>
       <div id="menuMeal1" style="font-size:14px; margin-bottom:10px;">—</div>
       <div class="stat-row"><span class="stat-label">Meal 2</span></div>
-      <div id="menuMeal2" style="font-size:14px;">—</div>
+      <div id="menuMeal2" style="font-size:14px; margin-bottom:10px;">—</div>
+      <div class="tear"></div>
+      <div class="stat-row"><span class="stat-label">Est. calories today</span><span class="stat-value" id="menuKcal">—</span></div>
+      <div class="stat-row"><span class="stat-label">Est. protein today</span><span class="stat-value green" id="menuProtein">—</span></div>
     </div>
 
     <div class="card">
       <div class="section-title">Today's checklist</div>
-      <div class="check" data-key="meal1"><input type="checkbox"> Meal 1 eaten</div>
-      <div class="check" data-key="meal2"><input type="checkbox"> Meal 2 eaten</div>
-      <div class="check" data-key="fruit"><input type="checkbox"> Fruit / evening bridge snack</div>
-      <label style="margin-top:10px;">Weight today (kg) — optional</label>
+
+      <div class="check" data-key="meal1">
+        <span class="check-left"><input type="checkbox"> Meal 1 eaten</span>
+        <span class="check-time" id="meal1TimeLabel"></span>
+      </div>
+      <div class="check" data-key="meal2">
+        <span class="check-left"><input type="checkbox"> Meal 2 eaten</span>
+        <span class="check-time" id="meal2TimeLabel"></span>
+      </div>
+      <div class="check" data-key="fruit">
+        <span class="check-left"><input type="checkbox"> Fruit / evening bridge snack</span>
+      </div>
+
+      <label style="margin-top:6px;">Water (tap glasses, goal 8)</label>
+      <div class="water-row" id="waterRow"></div>
+
+      <label>Weight today (kg) — optional</label>
       <input type="number" id="logWeight" step="0.1" placeholder="e.g. 94.5">
+
       <label>Steps today</label>
       <input type="number" id="logSteps" step="100" placeholder="e.g. 5200">
       <div class="bar-track"><div class="bar-fill" id="stepsBar" style="width:0%;"></div></div>
       <div class="steps-note" id="stepsNote">0 / 5000 steps</div>
+
+      <div class="tear"></div>
+      <label>Today's workout (from your trainer)</label>
+      <input type="text" id="workoutNote" placeholder="e.g. Upper body — chest & triceps">
+      <div class="check" data-key="workoutDone" style="margin-bottom:4px;">
+        <span class="check-left"><input type="checkbox"> Workout completed</span>
+      </div>
+
       <button id="saveLog" style="margin-top:12px;">Save today</button>
       <div class="msg" id="saveMsg"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">This week</div>
+      <div class="stat-row"><span class="stat-label">Meals hit</span><span class="stat-value" id="weekMeals">—</span></div>
+      <div class="stat-row"><span class="stat-label">Avg steps</span><span class="stat-value" id="weekSteps">—</span></div>
+      <div class="stat-row"><span class="stat-label">Avg water</span><span class="stat-value blue" id="weekWater">—</span></div>
+      <div class="stat-row"><span class="stat-label">Workouts done</span><span class="stat-value" id="weekWorkouts">—</span></div>
+      <div class="feedback-box" id="weekFeedback">Log a few days to see your weekly summary.</div>
     </div>
 
     <div class="card">
@@ -160,23 +190,24 @@
       <div class="stat-row"><span class="stat-label">Latest weight</span><span class="stat-value" id="statLatest">—</span></div>
       <div class="stat-row"><span class="stat-label">Lost so far</span><span class="stat-value green" id="statLost">—</span></div>
       <div class="stat-row"><span class="stat-label">Meal-plan streak</span><span class="stat-value rust" id="statStreak">—</span></div>
-      <div class="stat-row"><span class="stat-label">Avg steps (7d)</span><span class="stat-value" id="statAvgSteps">—</span></div>
+      <div class="stat-row" id="projectionRow" style="display:none;"><span class="stat-label">Projected goal date</span><span class="stat-value blue" id="statProjection">—</span></div>
       <div class="tear"></div>
       <canvas id="chart" height="130"></canvas>
       <div class="empty" id="chartEmpty" style="display:none;">Log a few days to see your trend line here.</div>
     </div>
 
     <div class="card">
-      <div class="section-title">Recent history</div>
+      <div class="section-title">History</div>
       <table id="historyTable">
-        <thead><tr><th>Date</th><th>Weight</th><th>Steps</th><th>Meals</th></tr></thead>
+        <thead><tr><th>Date</th><th>Wt</th><th>Steps</th><th>Water</th><th>Meals</th></tr></thead>
         <tbody id="historyBody"></tbody>
       </table>
       <div class="empty" id="historyEmpty" style="display:none;">No entries yet.</div>
+      <button class="outline" id="exportBtn" style="margin-top:12px;">Export full history (.csv)</button>
     </div>
 
     <div class="card">
-      <span class="toggle-link" id="toggleSettings">Edit schedule / weight / step goal</span>
+      <span class="toggle-link" id="toggleSettings">Edit schedule / weight / goals</span>
       <div id="settingsBody">
         <div class="tear"></div>
         <label>Wake-up time</label>
@@ -187,6 +218,8 @@
         <input type="time" id="meal2Time2">
         <label>Bedtime</label>
         <input type="time" id="sleepTime2">
+        <label>Goal weight (kg)</label>
+        <input type="number" id="goalWeight2" step="0.1">
         <label>Daily step goal</label>
         <input type="number" id="stepGoal2" step="500">
         <button id="updateSettings">Update</button>
@@ -202,6 +235,24 @@ const todayStr = () => {
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 };
 
+const FORM_ACTION_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScInG7Ip0pUaKXt4d6PS13a82VacyAu6pI7ujMQYSOr1V4qdQ/formResponse';
+const FORM_FIELDS = {
+  date: 'entry.1407182388', weight: 'entry.591745938', steps: 'entry.2006155217',
+  meal1: 'entry.903070913', meal2: 'entry.974669481', fruit: 'entry.263373733'
+};
+function submitToSheet(entry){
+  try{
+    const body = new URLSearchParams();
+    body.append(FORM_FIELDS.date, entry.date || '');
+    body.append(FORM_FIELDS.weight, entry.weight || '');
+    body.append(FORM_FIELDS.steps, entry.steps || '');
+    body.append(FORM_FIELDS.meal1, entry.meal1 ? 'Yes' : 'No');
+    body.append(FORM_FIELDS.meal2, entry.meal2 ? 'Yes' : 'No');
+    body.append(FORM_FIELDS.fruit, entry.fruit ? 'Yes' : 'No');
+    fetch(FORM_ACTION_URL, { method: 'POST', mode: 'no-cors', body });
+  }catch(e){}
+}
+
 async function safeGet(key){
   try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }
   catch(e){ return null; }
@@ -215,10 +266,7 @@ async function listLogs(){
     const entries = [];
     for(let i=0; i<localStorage.length; i++){
       const k = localStorage.key(i);
-      if(k && k.startsWith('log:')){
-        const v = await safeGet(k);
-        if(v) entries.push(v);
-      }
+      if(k && k.startsWith('log:')){ const v = await safeGet(k); if(v) entries.push(v); }
     }
     entries.sort((a,b)=> a.date.localeCompare(b.date));
     return entries;
@@ -233,53 +281,34 @@ function minutesToLabel(mins){
   let hh = h % 12; if(hh===0) hh=12;
   return `${hh}:${String(m).padStart(2,'0')} ${period}`;
 }
-
-const FORM_ACTION_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScInG7Ip0pUaKXt4d6PS13a82VacyAu6pI7ujMQYSOr1V4qdQ/formResponse';
-const FORM_FIELDS = {
-  date: 'entry.1407182388',
-  weight: 'entry.591745938',
-  steps: 'entry.2006155217',
-  meal1: 'entry.903070913',
-  meal2: 'entry.974669481',
-  fruit: 'entry.263373733'
-};
-
-function submitToSheet(entry){
-  try{
-    const body = new URLSearchParams();
-    body.append(FORM_FIELDS.date, entry.date || '');
-    body.append(FORM_FIELDS.weight, entry.weight || '');
-    body.append(FORM_FIELDS.steps, entry.steps || '');
-    body.append(FORM_FIELDS.meal1, entry.meal1 ? 'Yes' : 'No');
-    body.append(FORM_FIELDS.meal2, entry.meal2 ? 'Yes' : 'No');
-    body.append(FORM_FIELDS.fruit, entry.fruit ? 'Yes' : 'No');
-    fetch(FORM_ACTION_URL, { method: 'POST', mode: 'no-cors', body });
-  }catch(e){ /* best-effort, local save already succeeded */ }
+function nowLabel(){
+  const n = new Date();
+  return n.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 }
 
 let schedule = null;
 let stepGoal = 5000;
+let goalWeight = null;
 
-// Sunday=0 ... Saturday=6, matches Date.getDay()
+// Sunday=0 ... Saturday=6, matches Date.getDay(). Extra egg added to every meal per request.
 const MENU = [
-  { meal1: "Jollof rice + chicken (5 spoons)", meal2: "Rice & beans, no extra protein (4 spoons)" }, // Sun
-  { meal1: "Jollof rice + 3 beef pieces (5 spoons)", meal2: "Rice & beans + egg (4 spoons)" }, // Mon
-  { meal1: "White rice + fish (5 spoons)", meal2: "Rice & beans + egg (4 spoons)" }, // Tue
-  { meal1: "Fried rice + 3 beef pieces (5 spoons)", meal2: "Rice & beans, no extra protein (4 spoons)" }, // Wed
-  { meal1: "Jollof rice + fish (5 spoons)", meal2: "White rice + egg (4 spoons)" }, // Thu
-  { meal1: "White rice + 3 beef pieces (5 spoons)", meal2: "Rice & beans + egg (4 spoons)" }, // Fri
-  { meal1: "Fried rice + fish (5 spoons)", meal2: "Rice & beans + egg (4 spoons)" } // Sat
+  { meal1: "Jollof rice + chicken + egg (5 spoons)", meal2: "Rice & beans + egg (4 spoons)", kcal: 2050, protein: 95 }, // Sun
+  { meal1: "Jollof rice + 3 beef pieces + egg (5 spoons)", meal2: "Rice & beans + egg (4 spoons)", kcal: 1900, protein: 88 }, // Mon
+  { meal1: "White rice + fish + egg (5 spoons)", meal2: "Rice & beans + egg (4 spoons)", kcal: 1880, protein: 92 }, // Tue
+  { meal1: "Fried rice + 3 beef pieces + egg (5 spoons)", meal2: "Rice & beans + egg (4 spoons)", kcal: 1950, protein: 88 }, // Wed
+  { meal1: "Jollof rice + fish + egg (5 spoons)", meal2: "White rice + egg (4 spoons)", kcal: 1900, protein: 90 }, // Thu
+  { meal1: "White rice + 3 beef pieces + egg (5 spoons)", meal2: "Rice & beans + egg (4 spoons)", kcal: 1900, protein: 88 }, // Fri
+  { meal1: "Fried rice + fish + egg (5 spoons)", meal2: "Rice & beans + egg (4 spoons)", kcal: 1900, protein: 92 } // Sat
 ];
 
 function renderMenu(phaseState){
   const today = MENU[new Date().getDay()];
   $('menuMeal1').textContent = today.meal1;
   const meal2El = $('menuMeal2');
-  if(phaseState.meal2Visible){
-    meal2El.textContent = today.meal2;
-  } else {
-    meal2El.textContent = `Locked until after Meal 1 · unlocks around ${minutesToLabel(timeToMinutes(schedule.meal1)+60)}`;
-  }
+  if(phaseState.meal2Visible) meal2El.textContent = today.meal2;
+  else meal2El.textContent = `Locked until after Meal 1 · unlocks around ${minutesToLabel(timeToMinutes(schedule.meal1)+60)}`;
+  $('menuKcal').textContent = '~' + today.kcal + ' kcal';
+  $('menuProtein').textContent = '~' + today.protein + 'g';
 }
 
 function updatePhase(){
@@ -321,9 +350,8 @@ function updatePhase(){
   $('phaseSub').textContent = sub;
   root.style.setProperty('--phase', color);
 
-  if(document.getElementById('menuMeal1')) renderMenu({meal2Visible});
+  if($('menuMeal1')) renderMenu({meal2Visible});
 
-  // Accountability nudge: meal window passed by an hour and still unchecked
   const meal1Box = document.querySelector('.check[data-key="meal1"] input');
   const meal2Box = document.querySelector('.check[data-key="meal2"] input');
   const accCard = $('accountabilityCard');
@@ -341,9 +369,38 @@ function updatePhase(){
 
 document.querySelectorAll('.check').forEach(c=>{
   c.addEventListener('click', ()=>{
-    setTimeout(()=> c.classList.toggle('done', c.querySelector('input').checked), 0);
+    setTimeout(()=>{
+      const checked = c.querySelector('input').checked;
+      c.classList.toggle('done', checked);
+      if(checked && (c.dataset.key === 'meal1' || c.dataset.key === 'meal2')){
+        const label = $(c.dataset.key + 'TimeLabel');
+        if(label && !label.textContent) label.textContent = 'at ' + nowLabel();
+      }
+      if(!checked && (c.dataset.key === 'meal1' || c.dataset.key === 'meal2')){
+        const label = $(c.dataset.key + 'TimeLabel');
+        if(label) label.textContent = '';
+      }
+    }, 0);
   });
 });
+
+// Water glasses
+let waterCount = 0;
+function renderWater(){
+  const row = $('waterRow');
+  row.innerHTML = '';
+  for(let i=1; i<=8; i++){
+    const g = document.createElement('div');
+    g.className = 'glass' + (i<=waterCount ? ' filled' : '');
+    g.textContent = '💧';
+    g.style.fontSize = '13px';
+    g.addEventListener('click', ()=>{
+      waterCount = (waterCount === i) ? i-1 : i;
+      renderWater();
+    });
+    row.appendChild(g);
+  }
+}
 
 $('logSteps').addEventListener('input', updateStepsBar);
 function updateStepsBar(){
@@ -359,11 +416,13 @@ $('saveSetup').addEventListener('click', async ()=>{
     meal2: $('meal2Time').value, sleep: $('sleepTime').value
   };
   const sw = parseFloat($('startWeight').value) || 95;
+  goalWeight = parseFloat($('goalWeight').value) || null;
   stepGoal = parseInt($('stepGoal').value) || 5000;
   await safeSet('schedule', schedule);
-  await safeSet('settings', {startWeight: sw, startDate: todayStr(), stepGoal});
+  await safeSet('settings', {startWeight: sw, startDate: todayStr(), stepGoal, goalWeight});
   $('setupCard').style.display = 'none';
   $('mainUI').style.display = 'block';
+  renderWater();
   updateStepsBar();
   await loadToday();
   await renderStats();
@@ -377,6 +436,11 @@ $('saveLog').addEventListener('click', async ()=>{
   if(weight) entry.weight = weight;
   const steps = parseInt($('logSteps').value);
   if(steps) entry.steps = steps;
+  entry.water = waterCount;
+  entry.workoutNote = $('workoutNote').value || '';
+  entry.meal1Time = $('meal1TimeLabel').textContent || '';
+  entry.meal2Time = $('meal2TimeLabel').textContent || '';
+
   const ok = await safeSet('log:' + date, entry);
   $('saveMsg').textContent = ok ? 'Saved.' : 'Could not save, try again.';
   if(ok) submitToSheet(entry);
@@ -394,6 +458,7 @@ $('toggleSettings').addEventListener('click', ()=>{
     $('meal2Time2').value = schedule.meal2;
     $('sleepTime2').value = schedule.sleep;
     $('stepGoal2').value = stepGoal;
+    $('goalWeight2').value = goalWeight || '';
   }
 });
 
@@ -403,12 +468,36 @@ $('updateSettings').addEventListener('click', async ()=>{
     meal2: $('meal2Time2').value, sleep: $('sleepTime2').value
   };
   stepGoal = parseInt($('stepGoal2').value) || stepGoal;
+  goalWeight = parseFloat($('goalWeight2').value) || null;
   await safeSet('schedule', schedule);
   const settings = await safeGet('settings') || {};
   settings.stepGoal = stepGoal;
+  settings.goalWeight = goalWeight;
   await safeSet('settings', settings);
   $('settingsBody').style.display = 'none';
   updateStepsBar();
+  await renderStats();
+});
+
+$('exportBtn').addEventListener('click', async ()=>{
+  const logs = await listLogs();
+  if(!logs.length){ alert('No history to export yet.'); return; }
+  const headers = ['date','weight','steps','water','meal1','meal1Time','meal2','meal2Time','fruit','workoutDone','workoutNote'];
+  const rows = [headers.join(',')];
+  logs.forEach(l=>{
+    rows.push(headers.map(h=>{
+      let v = l[h];
+      if(v === undefined || v === null) v = '';
+      if(typeof v === 'boolean') v = v ? 'Yes' : 'No';
+      return '"' + String(v).replace(/"/g,'""') + '"';
+    }).join(','));
+  });
+  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'dashboard-history.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 });
 
 async function loadToday(){
@@ -421,7 +510,12 @@ async function loadToday(){
     });
     if(existing.weight) $('logWeight').value = existing.weight;
     if(existing.steps) $('logSteps').value = existing.steps;
+    waterCount = existing.water || 0;
+    $('workoutNote').value = existing.workoutNote || '';
+    $('meal1TimeLabel').textContent = existing.meal1Time || '';
+    $('meal2TimeLabel').textContent = existing.meal2Time || '';
   }
+  renderWater();
   updateStepsBar();
 }
 
@@ -432,8 +526,10 @@ async function renderStats(){
   const withWeight = logs.filter(l=>l.weight);
   $('statStart').textContent = settings.startWeight + ' kg';
 
+  let latestWeight = null;
   if(withWeight.length){
     const latest = withWeight[withWeight.length-1];
+    latestWeight = latest.weight;
     $('statLatest').textContent = latest.weight + ' kg';
     const lost = (settings.startWeight - latest.weight).toFixed(1);
     $('statLost').textContent = (lost >= 0 ? lost + ' kg' : Math.abs(lost)+' kg (gained)');
@@ -447,12 +543,42 @@ async function renderStats(){
   }
   $('statStreak').textContent = streak + (streak===1 ? ' day' : ' days');
 
-  const last7 = logs.slice(-7).filter(l=>l.steps);
+  // Projection
+  const projRow = $('projectionRow');
+  if(settings.goalWeight && withWeight.length >= 2){
+    const first = withWeight[0], last = withWeight[withWeight.length-1];
+    const days = (new Date(last.date) - new Date(first.date)) / 86400000;
+    const kgLost = first.weight - last.weight;
+    if(days > 0 && kgLost > 0){
+      const ratePerDay = kgLost / days;
+      const remaining = last.weight - settings.goalWeight;
+      if(remaining > 0){
+        const daysNeeded = Math.round(remaining / ratePerDay);
+        const projDate = new Date(); projDate.setDate(projDate.getDate() + daysNeeded);
+        $('statProjection').textContent = projDate.toLocaleDateString([], {month:'short', day:'numeric'});
+        projRow.style.display = 'flex';
+      } else { projRow.style.display = 'none'; }
+    } else { projRow.style.display = 'none'; }
+  } else { projRow.style.display = 'none'; }
+
+  // Weekly summary (last 7 logged days)
+  const last7 = logs.slice(-7);
   if(last7.length){
-    const avg = Math.round(last7.reduce((a,l)=>a+l.steps,0)/last7.length);
-    $('statAvgSteps').textContent = avg.toLocaleString();
-  } else {
-    $('statAvgSteps').textContent = '—';
+    const mealsHit = last7.filter(l=>l.meal1 && l.meal2).length;
+    $('weekMeals').textContent = mealsHit + '/' + last7.length + ' days';
+    const stepsLogged = last7.filter(l=>l.steps);
+    $('weekSteps').textContent = stepsLogged.length ? Math.round(stepsLogged.reduce((a,l)=>a+l.steps,0)/stepsLogged.length).toLocaleString() : '—';
+    const waterLogged = last7.filter(l=>l.water !== undefined);
+    $('weekWater').textContent = waterLogged.length ? (waterLogged.reduce((a,l)=>a+l.water,0)/waterLogged.length).toFixed(1) + '/8' : '—';
+    const workoutsDone = last7.filter(l=>l.workoutDone).length;
+    $('weekWorkouts').textContent = workoutsDone + ' this week';
+
+    let feedback = '';
+    const adherencePct = mealsHit / last7.length;
+    if(adherencePct >= 0.85) feedback = "Strong week, meals are consistently on track. Keep this rhythm going.";
+    else if(adherencePct >= 0.5) feedback = "Decent week, a few meals slipped. Try to catch tomorrow's window early.";
+    else feedback = "A rough week for consistency. No need to overcorrect, just refocus on today's two meals.";
+    $('weekFeedback').textContent = feedback;
   }
 
   drawChart(withWeight);
@@ -488,10 +614,10 @@ function renderHistory(logs){
   body.innerHTML = '';
   if(!logs.length){ empty.style.display='block'; return; }
   empty.style.display='none';
-  logs.slice().reverse().slice(0,10).forEach(l=>{
+  logs.slice().reverse().slice(0,30).forEach(l=>{
     const tr = document.createElement('tr');
     const meals = ['meal1','meal2','fruit'].map(k=>`<span class="dot ${l[k]?'on':'off'}"></span>`).join('');
-    tr.innerHTML = `<td>${l.date}</td><td>${l.weight? l.weight+' kg':'—'}</td><td>${l.steps? l.steps.toLocaleString():'—'}</td><td>${meals}</td>`;
+    tr.innerHTML = `<td>${l.date.slice(5)}</td><td>${l.weight? l.weight:'—'}</td><td>${l.steps? l.steps.toLocaleString():'—'}</td><td>${l.water!==undefined? l.water+'/8':'—'}</td><td>${meals}</td>`;
     body.appendChild(tr);
   });
 }
@@ -503,7 +629,9 @@ async function init(){
     $('setupCard').style.display = 'block';
   } else {
     stepGoal = settings.stepGoal || 5000;
+    goalWeight = settings.goalWeight || null;
     $('mainUI').style.display = 'block';
+    renderWater();
     updateStepsBar();
     await loadToday();
     await renderStats();
