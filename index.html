@@ -89,6 +89,12 @@
     background:#F0EDE1; border-left:3px solid var(--green); padding:10px 12px;
     font-size:13px; margin-top:10px; border-radius:2px;
   }
+  .seg{display:flex;}
+  .seg button{margin-top:0; background:transparent; color:var(--green); border:1px solid var(--green); border-radius:0;}
+  .seg button:first-child{border-radius:2px 0 0 2px;}
+  .seg button:last-child{border-radius:0 2px 2px 0; border-left:none;}
+  .seg button.active{background:var(--green); color:#fff;}
+  .seg button:disabled{opacity:.6;}
 </style>
 </head>
 <body>
@@ -98,7 +104,7 @@
 
   <div class="card clock-card">
     <div class="clock-time" id="clockTime">--:--</div>
-    <div class="clock-date" id="clockDate">—</div>
+    <div class="clock-date" id="clockDate">-</div>
     <div class="phase-label" id="phaseLabel">Loading schedule…</div>
     <div class="phase-sub" id="phaseSub"></div>
   </div>
@@ -115,7 +121,7 @@
     <input type="time" id="sleepTime" value="22:00">
     <label>Starting weight (kg)</label>
     <input type="number" id="startWeight" value="95" step="0.1">
-    <label>Goal weight (kg) — optional</label>
+    <label>Goal weight (kg), optional</label>
     <input type="number" id="goalWeight" step="0.1" placeholder="e.g. 85">
     <label>Daily step goal</label>
     <input type="number" id="stepGoal" value="5000" step="500">
@@ -124,30 +130,45 @@
 
   <div id="mainUI" style="display:none;">
     <div class="card" id="accountabilityCard" style="display:none; background:#F6E9DC; border-color:var(--rust);">
-      <div class="section-title" style="color:var(--rust);" id="accountabilityText">—</div>
+      <div class="section-title" style="color:var(--rust);" id="accountabilityText">-</div>
+    </div>
+
+    <div class="card" id="dayTypeCard">
+      <div class="section-title">Day type</div>
+      <div class="seg">
+        <button id="dayNormal" class="active">Normal day</button>
+        <button id="dayFast">Fast day</button>
+      </div>
+      <label style="margin-top:12px;">Fast day meal reminder at</label>
+      <input type="time" id="fastTime" value="13:45">
+      <div class="msg" id="fastMsg"></div>
     </div>
 
     <div class="card">
       <div class="section-title">Today's menu</div>
-      <div class="stat-row"><span class="stat-label">Meal 1</span></div>
-      <div id="menuMeal1" style="font-size:14px; margin-bottom:10px;">—</div>
-      <div class="stat-row"><span class="stat-label">Meal 2</span></div>
-      <div id="menuMeal2" style="font-size:14px; margin-bottom:10px;">—</div>
+      <div class="stat-row"><span class="stat-label" id="menuLabel1">Meal 1</span></div>
+      <div id="menuMeal1" style="font-size:14px; margin-bottom:10px; white-space:pre-line;">-</div>
+      <div class="stat-row"><span class="stat-label" id="menuLabel2">Meal 2</span></div>
+      <div id="menuMeal2" style="font-size:14px; margin-bottom:10px;">-</div>
       <div class="tear"></div>
-      <div class="stat-row"><span class="stat-label">Est. calories today</span><span class="stat-value" id="menuKcal">—</span></div>
-      <div class="stat-row"><span class="stat-label">Est. protein today</span><span class="stat-value green" id="menuProtein">—</span></div>
+      <div class="stat-row"><span class="stat-label">Est. calories today</span><span class="stat-value" id="menuKcal">-</span></div>
+      <div class="stat-row"><span class="stat-label">Est. protein today</span><span class="stat-value green" id="menuProtein">-</span></div>
     </div>
 
     <div class="card">
       <div class="section-title">Today's checklist</div>
 
-      <div class="check" data-key="meal1">
+      <div class="check" data-key="meal1" id="meal1Row">
         <span class="check-left"><input type="checkbox"> Meal 1 eaten</span>
         <span class="check-time" id="meal1TimeLabel"></span>
       </div>
-      <div class="check" data-key="meal2">
+      <div class="check" data-key="meal2" id="meal2Row">
         <span class="check-left"><input type="checkbox"> Meal 2 eaten</span>
         <span class="check-time" id="meal2TimeLabel"></span>
+      </div>
+      <div class="check" data-key="fastMeal" id="fastMealRow" style="display:none;">
+        <span class="check-left"><input type="checkbox"> Fast day meal eaten</span>
+        <span class="check-time" id="fastMealTimeLabel"></span>
       </div>
       <div class="check" data-key="fruit">
         <span class="check-left"><input type="checkbox"> Fruit / evening bridge snack</span>
@@ -156,7 +177,7 @@
       <label style="margin-top:6px;">Water (tap glasses, goal 8)</label>
       <div class="water-row" id="waterRow"></div>
 
-      <label>Weight today (kg) — optional</label>
+      <label>Weight today (kg), optional</label>
       <input type="number" id="logWeight" step="0.1" placeholder="e.g. 94.5">
 
       <label>Steps today</label>
@@ -166,7 +187,7 @@
 
       <div class="tear"></div>
       <label>Today's workout (from your trainer)</label>
-      <input type="text" id="workoutNote" placeholder="e.g. Upper body — chest & triceps">
+      <input type="text" id="workoutNote" placeholder="e.g. Upper body - chest & triceps">
       <div class="check" data-key="workoutDone" style="margin-bottom:4px;">
         <span class="check-left"><input type="checkbox"> Workout completed</span>
       </div>
@@ -177,20 +198,21 @@
 
     <div class="card">
       <div class="section-title">This week</div>
-      <div class="stat-row"><span class="stat-label">Meals hit</span><span class="stat-value" id="weekMeals">—</span></div>
-      <div class="stat-row"><span class="stat-label">Avg steps</span><span class="stat-value" id="weekSteps">—</span></div>
-      <div class="stat-row"><span class="stat-label">Avg water</span><span class="stat-value blue" id="weekWater">—</span></div>
-      <div class="stat-row"><span class="stat-label">Workouts done</span><span class="stat-value" id="weekWorkouts">—</span></div>
+      <div class="stat-row"><span class="stat-label">Meals hit</span><span class="stat-value" id="weekMeals">-</span></div>
+      <div class="stat-row"><span class="stat-label">Avg steps</span><span class="stat-value" id="weekSteps">-</span></div>
+      <div class="stat-row"><span class="stat-label">Avg water</span><span class="stat-value blue" id="weekWater">-</span></div>
+      <div class="stat-row"><span class="stat-label">Workouts done</span><span class="stat-value" id="weekWorkouts">-</span></div>
+      <div class="stat-row"><span class="stat-label">Fast days</span><span class="stat-value" id="weekFast">-</span></div>
       <div class="feedback-box" id="weekFeedback">Log a few days to see your weekly summary.</div>
     </div>
 
     <div class="card">
       <div class="section-title">Where you're at</div>
-      <div class="stat-row"><span class="stat-label">Starting weight</span><span class="stat-value" id="statStart">—</span></div>
-      <div class="stat-row"><span class="stat-label">Latest weight</span><span class="stat-value" id="statLatest">—</span></div>
-      <div class="stat-row"><span class="stat-label">Lost so far</span><span class="stat-value green" id="statLost">—</span></div>
-      <div class="stat-row"><span class="stat-label">Meal-plan streak</span><span class="stat-value rust" id="statStreak">—</span></div>
-      <div class="stat-row" id="projectionRow" style="display:none;"><span class="stat-label">Projected goal date</span><span class="stat-value blue" id="statProjection">—</span></div>
+      <div class="stat-row"><span class="stat-label">Starting weight</span><span class="stat-value" id="statStart">-</span></div>
+      <div class="stat-row"><span class="stat-label">Latest weight</span><span class="stat-value" id="statLatest">-</span></div>
+      <div class="stat-row"><span class="stat-label">Lost so far</span><span class="stat-value green" id="statLost">-</span></div>
+      <div class="stat-row"><span class="stat-label">Meal-plan streak</span><span class="stat-value rust" id="statStreak">-</span></div>
+      <div class="stat-row" id="projectionRow" style="display:none;"><span class="stat-label">Projected goal date</span><span class="stat-value blue" id="statProjection">-</span></div>
       <div class="tear"></div>
       <canvas id="chart" height="130"></canvas>
       <div class="empty" id="chartEmpty" style="display:none;">Log a few days to see your trend line here.</div>
@@ -246,8 +268,9 @@ function submitToSheet(entry){
     body.append(FORM_FIELDS.date, entry.date || '');
     body.append(FORM_FIELDS.weight, entry.weight || '');
     body.append(FORM_FIELDS.steps, entry.steps || '');
-    body.append(FORM_FIELDS.meal1, entry.meal1 ? 'Yes' : 'No');
-    body.append(FORM_FIELDS.meal2, entry.meal2 ? 'Yes' : 'No');
+    body.append(FORM_FIELDS.meal1, (entry.dayType === 'fast' ? entry.fastMeal : entry.meal1) ? 'Yes' : 'No');
+    // The form has no day-type column, so on fast days both meal columns mirror the fast meal.
+    body.append(FORM_FIELDS.meal2, (entry.dayType === 'fast' ? entry.fastMeal : entry.meal2) ? 'Yes' : 'No');
     body.append(FORM_FIELDS.fruit, entry.fruit ? 'Yes' : 'No');
     fetch(FORM_ACTION_URL, { method: 'POST', mode: 'no-cors', body });
   }catch(e){}
@@ -290,6 +313,19 @@ let schedule = null;
 let stepGoal = 5000;
 let goalWeight = null;
 
+// Fast day state. Same storage key format the earlier fast-day module used.
+const TZ_OFFSET = '+01:00'; // Nigeria (WAT)
+const DEFAULT_FAST_TIME = '13:45';
+let fastState = null; // { time: 'HH:MM', eventId: string|null } or null on a normal day
+const fastKey = () => 'fastday:' + todayStr();
+const isFastDay = () => !!fastState;
+const dayHit = l => l.dayType === 'fast' ? !!l.fastMeal : !!(l.meal1 && l.meal2);
+const FAST_MENU = {
+  meal: "Option A: 6 spoons rice + chicken + egg\nOption B: 5 spoons rice + fish + 5 beef pieces + egg (more protein per naira)",
+  kcal: "~1,400-1,700 kcal",
+  protein: "~55-85g"
+};
+
 // Sunday=0 ... Saturday=6, matches Date.getDay(). Extra egg added to every meal per request.
 const MENU = [
   { meal1: "Jollof rice + chicken + egg (5 spoons)", meal2: "Rice & beans + egg (4 spoons)", kcal: 2050, protein: 95 }, // Sun
@@ -303,6 +339,18 @@ const MENU = [
 
 function renderMenu(phaseState){
   const today = MENU[new Date().getDay()];
+  if(isFastDay()){
+    $('menuLabel1').textContent = 'Fast day meal (one meal today)';
+    $('menuMeal1').textContent = FAST_MENU.meal;
+    $('menuLabel2').parentElement.style.display = 'none';
+    $('menuMeal2').style.display = 'none';
+    $('menuKcal').textContent = FAST_MENU.kcal;
+    $('menuProtein').textContent = FAST_MENU.protein;
+    return;
+  }
+  $('menuLabel1').textContent = 'Meal 1';
+  $('menuLabel2').parentElement.style.display = '';
+  $('menuMeal2').style.display = '';
   $('menuMeal1').textContent = today.meal1;
   const meal2El = $('menuMeal2');
   if(phaseState.meal2Visible) meal2El.textContent = today.meal2;
@@ -333,16 +381,27 @@ function updatePhase(){
   const meal1Passed = !within(wake, m1) && !within(m1, m1+60);
   const meal2Visible = meal1Passed;
 
-  if(within(m1, m1+60)){
-    label = "Meal 1 window — eat now"; sub = `${MENU[now.getDay()].meal1}`; color = '#B5651D';
+  if(isFastDay()){
+    const fm = timeToMinutes(fastState.time || DEFAULT_FAST_TIME);
+    if(within(fm, fm+60)){
+      label = "Fast day meal window: eat now"; sub = "One meal today, protein first"; color = '#B5651D';
+    } else if(within(wake, fm)){
+      const mins = fm - nowMin; label = "Fast day, before your meal"; sub = `Meal at ${minutesToLabel(fm)} · ${Math.floor(mins/60)}h ${mins%60}m to go`; color = '#3F5D45';
+    } else if(within(fm+60, sleep)){
+      const mins = (((sleep - nowMin)%1440)+1440)%1440; label = "Fast day, meal window done"; sub = `Bedtime in ${Math.floor(mins/60)}h ${mins%60}m`; color = '#4A4636';
+    } else {
+      label = "Asleep"; sub = "Rest up"; color = '#2B2A25';
+    }
+  } else if(within(m1, m1+60)){
+    label = "Meal 1 window: eat now"; sub = `${MENU[now.getDay()].meal1}`; color = '#B5651D';
   } else if(within(m2, m2+60)){
-    label = "Meal 2 window — eat now"; sub = `${MENU[now.getDay()].meal2}`; color = '#B5651D';
+    label = "Meal 2 window: eat now"; sub = `${MENU[now.getDay()].meal2}`; color = '#B5651D';
   } else if(within(wake, m1)){
     const mins = m1 - nowMin; label = "Before Meal 1"; sub = `Meal 1 at ${minutesToLabel(m1)} · ${Math.floor(mins/60)}h ${mins%60}m to go`; color = '#3F5D45';
   } else if(within(m1+60, m2)){
     const mins = m2 - nowMin; label = "Between meals"; sub = `Meal 2 in ${Math.floor(mins/60)}h ${mins%60}m`; color = '#3F5D45';
   } else if(within(m2+60, sleep)){
-    const mins = (((sleep - nowMin)%1440)+1440)%1440; label = "Wind down"; sub = `Bedtime in ${Math.floor(mins/60)}h ${mins%60}m — good window for a short walk`; color = '#4A4636';
+    const mins = (((sleep - nowMin)%1440)+1440)%1440; label = "Wind down"; sub = `Bedtime in ${Math.floor(mins/60)}h ${mins%60}m, good window for a short walk`; color = '#4A4636';
   } else {
     label = "Asleep"; sub = "Rest up"; color = '#2B2A25';
   }
@@ -357,7 +416,13 @@ function updatePhase(){
   const accCard = $('accountabilityCard');
   if(meal1Box && meal2Box){
     let nudge = null;
-    if(nowMin > m1+60 && nowMin < m2 && !meal1Box.checked){
+    if(isFastDay()){
+      const fm = timeToMinutes(fastState.time || DEFAULT_FAST_TIME);
+      const fastBox = document.querySelector('.check[data-key="fastMeal"] input');
+      if(nowMin > fm+60 && nowMin < sleep && fastBox && !fastBox.checked){
+        nudge = "Fast day meal window passed, did you eat? Mark it on the checklist below.";
+      }
+    } else if(nowMin > m1+60 && nowMin < m2 && !meal1Box.checked){
       nudge = "Meal 1 window passed, did you eat? Mark it on the checklist below.";
     } else if((within(m2+60, sleep) || within(sleep, wake)) && !meal2Box.checked){
       nudge = "Meal 2 window passed, did you eat? Mark it on the checklist below.";
@@ -372,11 +437,11 @@ document.querySelectorAll('.check').forEach(c=>{
     setTimeout(()=>{
       const checked = c.querySelector('input').checked;
       c.classList.toggle('done', checked);
-      if(checked && (c.dataset.key === 'meal1' || c.dataset.key === 'meal2')){
+      if(checked && (['meal1','meal2','fastMeal'].includes(c.dataset.key))){
         const label = $(c.dataset.key + 'TimeLabel');
         if(label && !label.textContent) label.textContent = 'at ' + nowLabel();
       }
-      if(!checked && (c.dataset.key === 'meal1' || c.dataset.key === 'meal2')){
+      if(!checked && (['meal1','meal2','fastMeal'].includes(c.dataset.key))){
         const label = $(c.dataset.key + 'TimeLabel');
         if(label) label.textContent = '';
       }
@@ -440,6 +505,8 @@ $('saveLog').addEventListener('click', async ()=>{
   entry.workoutNote = $('workoutNote').value || '';
   entry.meal1Time = $('meal1TimeLabel').textContent || '';
   entry.meal2Time = $('meal2TimeLabel').textContent || '';
+  entry.dayType = isFastDay() ? 'fast' : 'normal';
+  entry.fastMealTime = $('fastMealTimeLabel').textContent || '';
 
   const ok = await safeSet('log:' + date, entry);
   $('saveMsg').textContent = ok ? 'Saved.' : 'Could not save, try again.';
@@ -482,7 +549,7 @@ $('updateSettings').addEventListener('click', async ()=>{
 $('exportBtn').addEventListener('click', async ()=>{
   const logs = await listLogs();
   if(!logs.length){ alert('No history to export yet.'); return; }
-  const headers = ['date','weight','steps','water','meal1','meal1Time','meal2','meal2Time','fruit','workoutDone','workoutNote'];
+  const headers = ['date','weight','steps','water','meal1','meal1Time','meal2','meal2Time','fruit','workoutDone','workoutNote','dayType','fastMeal','fastMealTime'];
   const rows = [headers.join(',')];
   logs.forEach(l=>{
     rows.push(headers.map(h=>{
@@ -514,6 +581,7 @@ async function loadToday(){
     $('workoutNote').value = existing.workoutNote || '';
     $('meal1TimeLabel').textContent = existing.meal1Time || '';
     $('meal2TimeLabel').textContent = existing.meal2Time || '';
+    $('fastMealTimeLabel').textContent = existing.fastMealTime || '';
   }
   renderWater();
   updateStepsBar();
@@ -536,7 +604,7 @@ async function renderStats(){
   }
 
   let streak = 0, d = new Date();
-  const adherentDates = new Set(logs.filter(l=>l.meal1 && l.meal2).map(l=>l.date));
+  const adherentDates = new Set(logs.filter(dayHit).map(l=>l.date));
   while(true){
     const ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     if(adherentDates.has(ds)){ streak++; d.setDate(d.getDate()-1); } else break;
@@ -564,20 +632,23 @@ async function renderStats(){
   // Weekly summary (last 7 logged days)
   const last7 = logs.slice(-7);
   if(last7.length){
-    const mealsHit = last7.filter(l=>l.meal1 && l.meal2).length;
+    const mealsHit = last7.filter(dayHit).length;
     $('weekMeals').textContent = mealsHit + '/' + last7.length + ' days';
     const stepsLogged = last7.filter(l=>l.steps);
-    $('weekSteps').textContent = stepsLogged.length ? Math.round(stepsLogged.reduce((a,l)=>a+l.steps,0)/stepsLogged.length).toLocaleString() : '—';
+    $('weekSteps').textContent = stepsLogged.length ? Math.round(stepsLogged.reduce((a,l)=>a+l.steps,0)/stepsLogged.length).toLocaleString() : '-';
     const waterLogged = last7.filter(l=>l.water !== undefined);
-    $('weekWater').textContent = waterLogged.length ? (waterLogged.reduce((a,l)=>a+l.water,0)/waterLogged.length).toFixed(1) + '/8' : '—';
+    $('weekWater').textContent = waterLogged.length ? (waterLogged.reduce((a,l)=>a+l.water,0)/waterLogged.length).toFixed(1) + '/8' : '-';
     const workoutsDone = last7.filter(l=>l.workoutDone).length;
     $('weekWorkouts').textContent = workoutsDone + ' this week';
+    const fastDays = last7.filter(l=>l.dayType === 'fast').length;
+    $('weekFast').textContent = fastDays + ' of ' + last7.length;
 
     let feedback = '';
     const adherencePct = mealsHit / last7.length;
     if(adherencePct >= 0.85) feedback = "Strong week, meals are consistently on track. Keep this rhythm going.";
     else if(adherencePct >= 0.5) feedback = "Decent week, a few meals slipped. Try to catch tomorrow's window early.";
     else feedback = "A rough week for consistency. No need to overcorrect, just refocus on today's two meals.";
+    if(fastDays >= 5) feedback += ' Lots of fast days this week, so keep each one protein-heavy and watch for a rebound meal the next day.';
     $('weekFeedback').textContent = feedback;
   }
 
@@ -616,15 +687,104 @@ function renderHistory(logs){
   empty.style.display='none';
   logs.slice().reverse().slice(0,30).forEach(l=>{
     const tr = document.createElement('tr');
-    const meals = ['meal1','meal2','fruit'].map(k=>`<span class="dot ${l[k]?'on':'off'}"></span>`).join('');
-    tr.innerHTML = `<td>${l.date.slice(5)}</td><td>${l.weight? l.weight:'—'}</td><td>${l.steps? l.steps.toLocaleString():'—'}</td><td>${l.water!==undefined? l.water+'/8':'—'}</td><td>${meals}</td>`;
+    const isFast = l.dayType === 'fast';
+    const meals = (isFast ? ['fastMeal','fruit'] : ['meal1','meal2','fruit']).map(k=>`<span class="dot ${l[k]?'on':'off'}"></span>`).join('') + (isFast ? ' F' : '');
+    tr.innerHTML = `<td>${l.date.slice(5)}</td><td>${l.weight? l.weight:'-'}</td><td>${l.steps? l.steps.toLocaleString():'-'}</td><td>${l.water!==undefined? l.water+'/8':'-'}</td><td>${meals}</td>`;
     body.appendChild(tr);
   });
 }
 
+async function postJson(url, payload){
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  let data = {};
+  try{ data = await r.json(); }catch(e){}
+  if(!r.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+function applyDayType(){
+  const fast = isFastDay();
+  $('dayNormal').classList.toggle('active', !fast);
+  $('dayFast').classList.toggle('active', fast);
+  $('meal1Row').style.display = fast ? 'none' : '';
+  $('meal2Row').style.display = fast ? 'none' : '';
+  $('fastMealRow').style.display = fast ? '' : 'none';
+  $('fastTime').disabled = fast;
+  if(fast && fastState.time) $('fastTime').value = fastState.time;
+  if(fast && !$('fastMsg').textContent){
+    $('fastMsg').textContent = fastState.eventId ? 'Fast day. Reminder set for ' + fastState.time + '.' : 'Fast day. No reminder set.';
+  }
+  if(!fast && $('fastMsg').textContent.indexOf('Fast day') === 0) $('fastMsg').textContent = '';
+  updatePhase();
+}
+
+function setDayButtonsBusy(busy){
+  $('dayNormal').disabled = busy;
+  $('dayFast').disabled = busy;
+}
+
+$('dayFast').addEventListener('click', async ()=>{
+  if(isFastDay()) return;
+  setDayButtonsBusy(true);
+  const msg = $('fastMsg');
+  const time = $('fastTime').value || DEFAULT_FAST_TIME;
+  const startIso = todayStr() + 'T' + time + ':00' + TZ_OFFSET;
+  let eventId = null;
+
+  if(new Date(startIso).getTime() < Date.now()){
+    msg.textContent = 'Fast day. That time has passed, so no reminder was set.';
+  } else {
+    msg.textContent = 'Setting reminder...';
+    try{
+      const data = await postJson('/api/schedule-reminder', { start: startIso });
+      eventId = data.id;
+      msg.textContent = 'Fast day. Reminder set for ' + time + '.';
+    }catch(err){
+      msg.textContent = 'Fast day on, but the reminder failed: ' + err.message;
+    }
+  }
+
+  fastState = { time, eventId };
+  await safeSet(fastKey(), fastState);
+  await safeSet('fastDefaultTime', time);
+  setDayButtonsBusy(false);
+  applyDayType();
+});
+
+$('dayNormal').addEventListener('click', async ()=>{
+  if(!isFastDay()) return;
+  setDayButtonsBusy(true);
+  const msg = $('fastMsg');
+
+  if(fastState.eventId){
+    msg.textContent = 'Removing reminder...';
+    try{
+      await postJson('/api/cancel-reminder', { id: fastState.eventId });
+    }catch(err){
+      // Keep the fast day state so the reminder id is not lost; the user can retry.
+      msg.textContent = 'Could not remove the reminder, try again: ' + err.message;
+      setDayButtonsBusy(false);
+      return;
+    }
+  }
+
+  fastState = null;
+  try{ localStorage.removeItem(fastKey()); }catch(e){}
+  msg.textContent = '';
+  setDayButtonsBusy(false);
+  applyDayType();
+});
+
 async function init(){
   schedule = await safeGet('schedule');
   const settings = await safeGet('settings');
+  fastState = await safeGet(fastKey());
+  const savedFastTime = await safeGet('fastDefaultTime');
+  if(savedFastTime) $('fastTime').value = savedFastTime;
   if(!schedule || !settings){
     $('setupCard').style.display = 'block';
   } else {
@@ -636,7 +796,7 @@ async function init(){
     await loadToday();
     await renderStats();
   }
-  updatePhase();
+  applyDayType();
   setInterval(updatePhase, 15000);
 }
 init();
@@ -647,6 +807,5 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-<script src="fast-day.js"></script>
 </body>
 </html>
