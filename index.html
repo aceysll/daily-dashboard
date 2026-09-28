@@ -95,6 +95,15 @@
   .seg button:last-child{border-radius:0 2px 2px 0; border-left:none;}
   .seg button.active{background:var(--green); color:#fff;}
   .seg button:disabled{opacity:.6;}
+  select{
+    width:100%; font-family:'IBM Plex Mono', monospace; font-size:15px;
+    padding:8px 10px; border:1px solid var(--line); border-radius:2px;
+    background:#fff; color:var(--ink); margin-bottom:12px;
+  }
+  .suggest{background:#F0EDE1; border-left:3px solid var(--blue); padding:10px 12px; font-size:13px; margin:0 0 12px; border-radius:2px;}
+  .suggest ul{margin:6px 0 0; padding-left:18px;}
+  .suggest li{margin-bottom:3px;}
+  .suggest .hint{font-size:11px; color:var(--ink-soft); margin-top:8px;}
 </style>
 </head>
 <body>
@@ -173,6 +182,11 @@
       <div class="check" data-key="fruit">
         <span class="check-left"><input type="checkbox"> Fruit / evening bridge snack</span>
       </div>
+      <div class="check" data-key="extraMeal" id="extraMealRow">
+        <span class="check-left"><input type="checkbox"> Extra meal (unplanned)</span>
+        <span class="check-time" id="extraMealTimeLabel"></span>
+      </div>
+      <input type="text" id="extraMealNote" placeholder="What was it? (optional)" style="display:none;">
 
       <label style="margin-top:6px;">Water (tap glasses, goal 8)</label>
       <div class="water-row" id="waterRow"></div>
@@ -186,8 +200,16 @@
       <div class="steps-note" id="stepsNote">0 / 5000 steps</div>
 
       <div class="tear"></div>
-      <label>Today's workout (from your trainer)</label>
-      <input type="text" id="workoutNote" placeholder="e.g. Upper body - chest & triceps">
+      <label>Today's session</label>
+      <select id="workoutType">
+        <option value="chest">Chest</option>
+        <option value="backshoulders">Back & shoulders</option>
+        <option value="legs">Legs</option>
+        <option value="rest">Rest day</option>
+      </select>
+      <div class="suggest" id="workoutSuggest"></div>
+      <label>Notes from your trainer (optional)</label>
+      <input type="text" id="workoutNote" placeholder="e.g. Add weight on incline press">
       <div class="check" data-key="workoutDone" style="margin-bottom:4px;">
         <span class="check-left"><input type="checkbox"> Workout completed</span>
       </div>
@@ -203,6 +225,7 @@
       <div class="stat-row"><span class="stat-label">Avg water</span><span class="stat-value blue" id="weekWater">-</span></div>
       <div class="stat-row"><span class="stat-label">Workouts done</span><span class="stat-value" id="weekWorkouts">-</span></div>
       <div class="stat-row"><span class="stat-label">Fast days</span><span class="stat-value" id="weekFast">-</span></div>
+      <div class="stat-row"><span class="stat-label">Extra meals</span><span class="stat-value rust" id="weekExtra">-</span></div>
       <div class="feedback-box" id="weekFeedback">Log a few days to see your weekly summary.</div>
     </div>
 
@@ -260,7 +283,9 @@ const todayStr = () => {
 const FORM_ACTION_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScInG7Ip0pUaKXt4d6PS13a82VacyAu6pI7ujMQYSOr1V4qdQ/formResponse';
 const FORM_FIELDS = {
   date: 'entry.1407182388', weight: 'entry.591745938', steps: 'entry.2006155217',
-  meal1: 'entry.903070913', meal2: 'entry.974669481', fruit: 'entry.263373733'
+  meal1: 'entry.903070913', meal2: 'entry.974669481', fruit: 'entry.263373733',
+  dayType: null,   // set to 'entry.XXXXXXXXXX' after adding a "Day type" question to the form
+  extraMeal: null  // set to 'entry.XXXXXXXXXX' after adding an "Extra meal" question to the form
 };
 function submitToSheet(entry){
   try{
@@ -272,6 +297,8 @@ function submitToSheet(entry){
     // The form has no day-type column, so on fast days both meal columns mirror the fast meal.
     body.append(FORM_FIELDS.meal2, (entry.dayType === 'fast' ? entry.fastMeal : entry.meal2) ? 'Yes' : 'No');
     body.append(FORM_FIELDS.fruit, entry.fruit ? 'Yes' : 'No');
+    if(FORM_FIELDS.dayType) body.append(FORM_FIELDS.dayType, entry.dayType === 'fast' ? 'Fast' : 'Normal');
+    if(FORM_FIELDS.extraMeal) body.append(FORM_FIELDS.extraMeal, entry.extraMeal ? 'Yes' : 'No');
     fetch(FORM_ACTION_URL, { method: 'POST', mode: 'no-cors', body });
   }catch(e){}
 }
@@ -437,11 +464,12 @@ document.querySelectorAll('.check').forEach(c=>{
     setTimeout(()=>{
       const checked = c.querySelector('input').checked;
       c.classList.toggle('done', checked);
-      if(checked && (['meal1','meal2','fastMeal'].includes(c.dataset.key))){
+      if(c.dataset.key === 'extraMeal') $('extraMealNote').style.display = checked ? 'block' : 'none';
+      if(checked && (['meal1','meal2','fastMeal','extraMeal'].includes(c.dataset.key))){
         const label = $(c.dataset.key + 'TimeLabel');
         if(label && !label.textContent) label.textContent = 'at ' + nowLabel();
       }
-      if(!checked && (['meal1','meal2','fastMeal'].includes(c.dataset.key))){
+      if(!checked && (['meal1','meal2','fastMeal','extraMeal'].includes(c.dataset.key))){
         const label = $(c.dataset.key + 'TimeLabel');
         if(label) label.textContent = '';
       }
@@ -507,6 +535,9 @@ $('saveLog').addEventListener('click', async ()=>{
   entry.meal2Time = $('meal2TimeLabel').textContent || '';
   entry.dayType = isFastDay() ? 'fast' : 'normal';
   entry.fastMealTime = $('fastMealTimeLabel').textContent || '';
+  entry.extraMealTime = $('extraMealTimeLabel').textContent || '';
+  entry.extraMealNote = entry.extraMeal ? ($('extraMealNote').value || '') : '';
+  entry.workoutType = $('workoutType').value;
 
   const ok = await safeSet('log:' + date, entry);
   $('saveMsg').textContent = ok ? 'Saved.' : 'Could not save, try again.';
@@ -549,7 +580,7 @@ $('updateSettings').addEventListener('click', async ()=>{
 $('exportBtn').addEventListener('click', async ()=>{
   const logs = await listLogs();
   if(!logs.length){ alert('No history to export yet.'); return; }
-  const headers = ['date','weight','steps','water','meal1','meal1Time','meal2','meal2Time','fruit','workoutDone','workoutNote','dayType','fastMeal','fastMealTime'];
+  const headers = ['date','weight','steps','water','meal1','meal1Time','meal2','meal2Time','fruit','workoutDone','workoutNote','dayType','fastMeal','fastMealTime','workoutType','extraMeal','extraMealTime','extraMealNote'];
   const rows = [headers.join(',')];
   logs.forEach(l=>{
     rows.push(headers.map(h=>{
@@ -582,7 +613,11 @@ async function loadToday(){
     $('meal1TimeLabel').textContent = existing.meal1Time || '';
     $('meal2TimeLabel').textContent = existing.meal2Time || '';
     $('fastMealTimeLabel').textContent = existing.fastMealTime || '';
+    $('extraMealTimeLabel').textContent = existing.extraMealTime || '';
+    $('extraMealNote').value = existing.extraMealNote || '';
+    $('extraMealNote').style.display = existing.extraMeal ? 'block' : 'none';
   }
+  await initWorkout(existing && existing.workoutType);
   renderWater();
   updateStepsBar();
 }
@@ -642,6 +677,8 @@ async function renderStats(){
     $('weekWorkouts').textContent = workoutsDone + ' this week';
     const fastDays = last7.filter(l=>l.dayType === 'fast').length;
     $('weekFast').textContent = fastDays + ' of ' + last7.length;
+    const extraDays = last7.filter(l=>l.extraMeal).length;
+    $('weekExtra').textContent = extraDays + ' of ' + last7.length + ' days';
 
     let feedback = '';
     const adherencePct = mealsHit / last7.length;
@@ -649,6 +686,7 @@ async function renderStats(){
     else if(adherencePct >= 0.5) feedback = "Decent week, a few meals slipped. Try to catch tomorrow's window early.";
     else feedback = "A rough week for consistency. No need to overcorrect, just refocus on today's two meals.";
     if(fastDays >= 5) feedback += ' Lots of fast days this week, so keep each one protein-heavy and watch for a rebound meal the next day.';
+    if(extraDays >= 3) feedback += ' Extra meals showed up on ' + extraDays + ' days, and they can easily cancel out the deficit. Decide on a lighter fallback for those moments.';
     $('weekFeedback').textContent = feedback;
   }
 
@@ -688,11 +726,70 @@ function renderHistory(logs){
   logs.slice().reverse().slice(0,30).forEach(l=>{
     const tr = document.createElement('tr');
     const isFast = l.dayType === 'fast';
-    const meals = (isFast ? ['fastMeal','fruit'] : ['meal1','meal2','fruit']).map(k=>`<span class="dot ${l[k]?'on':'off'}"></span>`).join('') + (isFast ? ' F' : '');
+    const meals = (isFast ? ['fastMeal','fruit'] : ['meal1','meal2','fruit']).map(k=>`<span class="dot ${l[k]?'on':'off'}"></span>`).join('') + (isFast ? ' F' : '') + (l.extraMeal ? ' +' : '');
     tr.innerHTML = `<td>${l.date.slice(5)}</td><td>${l.weight? l.weight:'-'}</td><td>${l.steps? l.steps.toLocaleString():'-'}</td><td>${l.water!==undefined? l.water+'/8':'-'}</td><td>${meals}</td>`;
     body.appendChild(tr);
   });
 }
+
+// Suggested workouts, rotating on the days you train: chest, back & shoulders, legs.
+const WORKOUT_CYCLE = ['chest', 'backshoulders', 'legs'];
+const WORKOUTS = {
+  chest: { name: 'Chest', items: [
+    'Bench press (barbell or dumbbell): 4 x 6-10',
+    'Incline dumbbell press: 3 x 8-12',
+    'Cable or machine fly: 3 x 12-15',
+    'Push-ups: 2 sets, stop 2 reps before failure',
+    'Triceps pushdown: 3 x 10-15'
+  ]},
+  backshoulders: { name: 'Back & shoulders', items: [
+    'Lat pulldown or assisted pull-ups: 4 x 8-12',
+    'Seated cable row: 3 x 8-12',
+    'One-arm dumbbell row: 3 x 10 each side',
+    'Overhead dumbbell press: 3 x 8-10',
+    'Lateral raises: 3 x 12-15',
+    'Face pulls or rear delt fly: 3 x 12-15'
+  ]},
+  legs: { name: 'Legs', items: [
+    'Squat or leg press: 4 x 8-12',
+    'Romanian deadlift: 3 x 8-10',
+    'Walking lunges: 3 x 10 each leg',
+    'Leg curl: 3 x 10-15',
+    'Leg extension: 3 x 12-15',
+    'Calf raises: 4 x 12-20'
+  ]}
+};
+let suggestedType = 'chest';
+
+// Next in the rotation after the most recent completed session before today.
+async function suggestedWorkoutType(){
+  const logs = await listLogs();
+  const past = logs.filter(l => l.date !== todayStr() && l.workoutDone && WORKOUT_CYCLE.includes(l.workoutType));
+  if(!past.length) return 'chest';
+  const last = past[past.length - 1];
+  return WORKOUT_CYCLE[(WORKOUT_CYCLE.indexOf(last.workoutType) + 1) % WORKOUT_CYCLE.length];
+}
+
+function renderWorkout(){
+  const type = $('workoutType').value;
+  const box = $('workoutSuggest');
+  if(type === 'rest'){
+    box.innerHTML = '<strong>Rest day</strong><div class="hint">Recovery counts. Easy walk, hit your steps and water, and keep protein up.</div>';
+    return;
+  }
+  const w = WORKOUTS[type];
+  const tag = type === suggestedType ? ' (next in your rotation)' : '';
+  box.innerHTML = '<strong>Suggested: ' + w.name + tag + '</strong><ul>' +
+    w.items.map(i => '<li>' + i + '</li>').join('') +
+    `</ul><div class="hint">Suggestions only. Your trainer's plan comes first.</div>`;
+}
+
+async function initWorkout(savedType){
+  suggestedType = await suggestedWorkoutType();
+  $('workoutType').value = savedType || suggestedType;
+  renderWorkout();
+}
+$('workoutType').addEventListener('change', renderWorkout);
 
 async function postJson(url, payload){
   const r = await fetch(url, {
